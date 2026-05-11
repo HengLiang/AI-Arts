@@ -1,8 +1,9 @@
-#Scores
-#A=
-#B=
-#C=
-#D=
-#E=
-#F=
-#HengLiang=
+###Scores
+A=
+B=
+C=
+D=
+E=
+F=
+
+###HengLiang=
