@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>零信任协定 - Matrix屏保</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="ztMatrix"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('ztMatrix');
+        const ctx = canvas.getContext('2d');
+
+        // 设置Canvas为1920x1080分辨率
+        canvas.width = 1920;
+        canvas.height = 1080;
+
+        // 从《零信任协定》诗歌中提取字符
+        const poemText = `从不信任持续验证每个数据包都是陌生人在VRF的随机选择中委员会节点轮转如星系Proof-of-Stake权重投票BFT共识在拜占庭将军间流传2f+1个诚实见证才能让真相跨越网络边界ZK-SNARK静默证明无需暴露即可验证身份Merkle路径追溯到根每一步都留下不可篡改的印记流量混淆在洋葱层中Tor节点如同多重面具分布式信任不依赖中心因为没有什么是绝对安全的监视者监视监视者在无限递归的镜像迷宫里零信任是唯一的信条验证再验证永不停歇ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`;
+
+        const chars = poemText.split('');
+
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+
+        // 三层分布式系统模拟
+        const layers = 3;
+        const dropLayers = [];
+        const speedLayers = [];
+        const brightnessLayers = [];
+
+        for (let layer = 0; layer < layers; layer++) {
+            dropLayers[layer] = Array(columns).fill(0).map(() => Math.random() * -100 - layer * 50);
+            speedLayers[layer] = Array(columns).fill(0).map(() => (0.3 + Math.random() * 0.7) * (1 + layer * 0.3));
+            brightnessLayers[layer] = Array(columns).fill(0).map(() => (0.4 + Math.random() * 0.6) * (1 - layer * 0.2));
+        }
+
+        function draw() {
+            // 半透明黑色背景，产生拖尾效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = `${fontSize}px monospace`;
+            
+            // 渲染每一层
+            for (let layer = 0; layer < layers; layer++) {
+                const drops = dropLayers[layer];
+                const speeds = speedLayers[layer];
+                const brightness = brightnessLayers[layer];
+                
+                for (let i = 0; i < drops.length; i++) {
+                    // 随机选择字符
+                    const char = chars[Math.floor(Math.random() * chars.length)];
+                    
+                    // 计算颜色亮度和透明度
+                    const b = Math.floor(brightness[i] * 255);
+                    const alpha = 0.3 + layer * 0.35;
+                    ctx.fillStyle = `rgba(0, ${b}, 0, ${alpha})`;
+                    
+                    const x = i * fontSize;
+                    const y = drops[i] * fontSize;
+                    
+                    // 绘制字符
+                    ctx.fillText(char, x, y);
+                    
+                    // 第一层前端字符高亮
+                    if (layer === 0 && drops[i] > 0 && drops[i] < 5) {
+                        ctx.fillStyle = 'rgba(0, 255, 0, 0.95)';
+                        ctx.fillText(char, x, y);
+                    }
+                    
+                    // 第一层偶尔闪烁验证信号
+                    if (layer === 0 && Math.random() > 0.98) {
+                        ctx.fillStyle = `rgba(0, 255, 0, 0.9)`;
+                        ctx.fillText(char, x, y);
+                    }
+                    
+                    // 重置掉落位置
+                    if (y > canvas.height && Math.random() > 0.97) {
+                        drops[i] = -20;
+                        speeds[i] = (0.3 + Math.random() * 0.7) * (1 + layer * 0.3);
+                        brightness[i] = (0.4 + Math.random() * 0.6) * (1 - layer * 0.2);
+                    }
+                    
+                    // 更新位置
+                    drops[i] += speeds[i];
+                }
+            }
+            
+            // 随机添加"验证通过"闪光标记
+            if (Math.random() > 0.95) {
+                const x = Math.floor(Math.random() * columns) * fontSize;
+                const y = Math.random() * canvas.height;
+                ctx.fillStyle = 'rgba(0, 255, 100, 0.8)';
+                ctx.font = `${fontSize}px monospace`;
+                ctx.fillText('✓', x, y);
+            }
+        }
+
+        // 30fps动画
+        setInterval(draw, 33);
+    </script>
+</body>
+</html>

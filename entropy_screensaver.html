@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据熵墙 - Matrix屏保</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        // 设置Canvas为1920x1080分辨率
+        canvas.width = 1920;
+        canvas.height = 1080;
+
+        // 从《数据熵墙》诗歌中提取字符
+        const poemText = `零与壹的深渊边界哈希函数编织光之锁链Merkle树根蔓延成网SHA-256守护每个字节的纯净AES-GCM轻声低语HMAC在暗处验证身份椭圆曲线勾勒出不可逆转的单向证明熵池涌动随机洪流Nonce值闪烁如星辰碎片密钥交换在量子噪声中握手然后沉默防火墙是一首未完的诗每一行代码都是咒语抵御混沌侵蚀的边界在0x00与0xFF之间永恒巡逻ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`;
+
+        const chars = poemText.split('');
+
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+
+        // 初始化掉落位置、速度和亮度
+        const drops = Array(columns).fill(0).map(() => Math.random() * -100);
+        const speeds = Array(columns).fill(0).map(() => 0.5 + Math.random() * 1);
+        const brightness = Array(columns).fill(0).map(() => 0.5 + Math.random() * 0.5);
+
+        function draw() {
+            // 半透明黑色背景，产生拖尾效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = `${fontSize}px monospace`;
+            
+            for (let i = 0; i < drops.length; i++) {
+                // 随机选择字符
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                
+                // 计算颜色亮度
+                const b = Math.floor(brightness[i] * 255);
+                ctx.fillStyle = `rgb(0, ${b}, 0)`;
+                
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                
+                // 绘制字符
+                ctx.fillText(char, x, y);
+                
+                // 前端字符高亮效果
+                if (drops[i] > 0 && drops[i] < 5) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.9)';
+                    ctx.fillText(char, x, y);
+                }
+                
+                // 重置掉落位置
+                if (y > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                    speeds[i] = 0.5 + Math.random() * 1;
+                    brightness[i] = 0.5 + Math.random() * 0.5;
+                }
+                
+                // 更新位置
+                drops[i] += speeds[i];
+            }
+        }
+
+        // 30fps动画
+        setInterval(draw, 33);
+    </script>
+</body>
+</html>
