@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分布式夜航 · Matrix Poem 02</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000000;
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    background: #000000;
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+  }
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    background: #000000;
+    image-rendering: optimizeSpeed;
+  }
+  .title {
+    position: fixed;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #00FF00;
+    font-size: 16px;
+    letter-spacing: 0.28em;
+    font-weight: 400;
+    text-shadow: 0 0 10px rgba(0,255,0,0.9), 0 0 30px rgba(0,255,0,0.4), 0 0 60px rgba(0,255,0,0.2);
+    opacity: 0.85;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.5) 100%),
+                linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 30%);
+    z-index: 5;
+  }
+  @media (max-width: 768px) {
+    .title {
+      font-size: 12px;
+      bottom: 24px;
+      letter-spacing: 0.18em;
+    }
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix" width="1920" height="1080"></canvas>
+<div class="vignette"></div>
+<div class="title">分布式夜航 · Matrix Poem 02</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const W = 1920;
+  const H = 1080;
+
+  // 仅使用诗中字符（已去除空格换行）
+  const POEM = '分布式星群在异步海面漂流BFT容忍f<n/3的背叛消息迟到，时钟漂移，仍要达成一致共识是黑暗中的灯塔协议VRF抽签，随机却可验证seed||round->pi,output不可预测Leader匿名诞生，像闪电选中云层公平源于密码，而非权威网络分区如裂谷，CAP在耳边低语选择可用性，还是强一致？最终一致性在gossip中收敛CRDT合并冲突，无需中央仲裁零信任边界，每一次请求都需证明mTLS握手，证书链向上追溯审计日志写入WORM，不可篡改安全不是产品，是持续的验证';
+  const chars = POEM.split('');
+  
+  const rand = (min, max) => min + Math.random() * (max - min);
+  const pick = () => chars[(Math.random() * chars.length) | 0];
+
+  // 初始化黑屏
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+
+  const fontFamily = '"Noto Sans SC","PingFang SC","Microsoft YaHei","Source Han Sans SC",monospace';
+  const columnCount = 135;
+  const columnWidth = W / columnCount;
+  const streams = [];
+
+  function createStream(i) {
+    const fontSize = rand(18, 26);
+    return {
+      x: i * columnWidth + rand(-8, 8),
+      y: rand(-H * 0.8, H * 0.2),
+      baseX: i * columnWidth,
+      speed: rand(0.8, 2.5) * 2.8,
+      length: (rand(16, 30) | 0),
+      chars: Array.from({ length: 8 }, pick),
+      drift: rand(-0.4, 0.4),
+      fontSize: fontSize,
+      phase: Math.random() * Math.PI * 2,
+      wobble: rand(0.5, 1.5)
+    };
+  }
+
+  for (let i = 0; i < columnCount; i++) {
+    streams.push(createStream(i));
+  }
+
+  let lastTime = 0;
+  const targetFPS = 60;
+  const frameInterval = 1000 / targetFPS;
+
+  function animate(now) {
+    requestAnimationFrame(animate);
+    
+    if (now - lastTime < frameInterval * 0.9) return;
+    lastTime = now;
+
+    // 淡出残影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let s of streams) {
+      // 位置更新 - 垂直下落 + 水平漂移
+      s.y += s.speed;
+      s.x += s.drift + Math.sin((s.y * 0.003) + s.phase) * s.wobble * 0.15;
+
+      // 字符更新
+      if (Math.random() < 0.38) {
+        s.chars.unshift(pick());
+        if (s.chars.length > s.length + 5) s.chars.pop();
+      }
+      // 内部随机闪烁替换
+      if (Math.random() < 0.04) {
+        const idx = (Math.random() * Math.min(6, s.chars.length)) | 0;
+        s.chars[idx] = pick();
+      }
+
+      // 重置超出屏幕的流
+      if (s.y - s.length * s.fontSize > H + 100) {
+        const idx = Math.floor(s.baseX / columnWidth);
+        streams[streams.indexOf(s)] = createStream(idx);
+        continue;
+      }
+
+      ctx.font = `${s.fontSize}px ${fontFamily}`;
+
+      // 绘制字符列
+      for (let j = 0; j < s.length; j++) {
+        const py = s.y - j * s.fontSize;
+        if (py < -40 || py > H + 20) continue;
+        
+        const ch = s.chars[j] || pick();
+        const fade = j / s.length;
+
+        if (j === 0) {
+          // 头部 - #00FF00 最亮
+          ctx.shadowColor = '#00FF00';
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = '#00FF00';
+          ctx.globalAlpha = 1;
+        } else if (j === 1) {
+          ctx.shadowColor = '#00FF00';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = 'rgba(0, 255, 40, 0.95)';
+          ctx.globalAlpha = 0.95;
+        } else if (j < 4) {
+          ctx.shadowColor = '#00aa00';
+          ctx.shadowBlur = 6;
+          const b = 0.85 - fade * 0.3;
+          ctx.fillStyle = `rgba(0, 255, 60, ${b})`;
+          ctx.globalAlpha = b;
+        } else {
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = Math.max(0, 1 - fade * 1.1);
+          const green = Math.floor(160 * (1 - fade) + 15);
+          ctx.fillStyle = `rgb(0, ${green}, ${green * 0.15 | 0})`;
+        }
+
+        // 轻微水平漂移增加深度
+        const px = s.x + Math.sin(j * 0.3 + s.phase) * 0.8;
+        ctx.fillText(ch, px, py);
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  requestAnimationFrame(animate);
+
+  // 保持 canvas 比例，适应窗口
+  function fit() {
+    const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+    const w = W * scale;
+    const h = H * scale;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.style.left = ((window.innerWidth - w) / 2) + 'px';
+    canvas.style.top = ((window.innerHeight - h) / 2) + 'px';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哈希星图 · Matrix Poem 01</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000000;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+canvas {
+  background: #000000;
+  display: block;
+  width: 100vw;
+  height: 56.25vw;
+  max-height: 100vh;
+  max-width: 177.7777777778vh;
+  box-shadow: 0 0 80px rgba(0,255,0,0.05);
+  image-rendering: optimizeSpeed;
+}
+.title {
+  position: absolute;
+  bottom: 3.5vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: "Noto Serif SC", "Songti SC", "Microsoft YaHei", serif;
+  font-size: clamp(12px, 1.4vw, 22px);
+  letter-spacing: 0.5em;
+  color: rgba(0, 255, 0, 0.12);
+  text-shadow: 0 0 20px rgba(0,255,0,0.25), 0 0 40px rgba(0,255,0,0.1);
+  pointer-events: none;
+  user-select: none;
+  font-weight: 300;
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="matrix" width="1920" height="1080"></canvas>
+  <div class="title">哈希星图 · Matrix Poem 01</div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  
+  const W = 1920;
+  const H = 1080;
+  const fontSize = 20;
+  const columns = Math.floor(W / fontSize);
+  const columnStep = W / columns;
+  
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  const poem = `我在黑暗中播种 SHA-256
+nonce 从 0 递增，寻找前导零的寂静
+哈希是单向的河，无法逆流而上
+碰撞概率 < 2^-128，近乎神的拒绝
+Merkle 树在内存森林生长
+leaf = tx_i，hash 层层向上
+root 固定在区块头，像北极星
+proof 只需 O(log n)，轻盈如风
+零知识的夜莺轻唱 zk-SNARK
+我知道 witness，却不说出 secret
+多项式承诺折叠真相，Verifier 一瞥即信
+隐私不是隐藏，是可验证的沉默
+椭圆曲线上，secp256k1 舞动
+私钥 d 是孤星，公钥 Q = d*G 广播
+ECDSA 签下时间，抗抵赖的印记
+密码学即信任，数学即法律`;
+
+  const charset = [...new Set(poem.replace(/\s+/g, '').split(''))];
+  const randomChar = () => charset[(Math.random() * charset.length) | 0];
+
+  const drops = [];
+  for (let i = 0; i < columns; i++) {
+    const len = 12 + ((Math.random() * 18) | 0);
+    drops.push({
+      x: i * columnStep + columnStep / 2,
+      y: Math.random() * -H / fontSize,
+      speed: 0.7 + Math.random() * 1.4, // 1x ~ 3x
+      len,
+      chars: Array.from({length: len}, randomChar),
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  ctx.font = `${fontSize}px "SF Mono", "Menlo", "Consolas", "Microsoft YaHei", "PingFang SC", monospace`;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'center';
+
+  let last = performance.now();
+  let frames = 0;
+
+  function draw() {
+    // fade background for motion trails
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.fillRect(0, 0, W, H);
+    
+    ctx.shadowColor = '#00FF00';
+
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      d.y += d.speed;
+      
+      if (d.y * fontSize > H + d.len * fontSize + 100) {
+        d.y = -Math.random() * 50;
+        d.speed = 0.7 + Math.random() * 1.4;
+        d.len = 12 + ((Math.random() * 18) | 0);
+        d.chars = Array.from({length: d.len}, randomChar);
+        continue;
+      }
+
+      const head = Math.floor(d.y);
+      
+      for (let j = 0; j < d.len; j++) {
+        const y = (head - j) * fontSize;
+        if (y < -fontSize * 2 || y > H + fontSize) continue;
+        
+        // mutate characters occasionally
+        if (Math.random() < 0.025) {
+          d.chars[j] = randomChar();
+        }
+        
+        const char = d.chars[j] || randomChar();
+        const t = j / d.len; // 0 head -> 1 tail
+        
+        if (j === 0) {
+          // bright head
+          ctx.shadowBlur = 14;
+          ctx.fillStyle = '#00FF00';
+          ctx.globalAlpha = 1;
+        } else {
+          // fading trail from #00FF00 to #003300
+          const green = 255 - t * 204; // 255 -> 51
+          const alpha = 1 - t * 0.85; // 1 -> 0.15
+          ctx.shadowBlur = j < 4 ? 8 : 2;
+          ctx.fillStyle = `rgb(0,${green|0},0)`;
+          ctx.globalAlpha = alpha * 0.9;
+        }
+        
+        // subtle flicker
+        if (j === 0 && Math.random() < 0.1) {
+          ctx.globalAlpha *= 0.7 + Math.random() * 0.3;
+        }
+        
+        ctx.fillText(char, d.x, y);
+      }
+    }
+    
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    
+    frames++;
+    const now = performance.now();
+    if (now - last > 1000) {
+      last = now;
+      frames = 0;
+    }
+    
+    requestAnimationFrame(draw);
+  }
+
+  // initial black
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  
+  draw();
+
+  // handle visibility to pause when hidden
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      last = performance.now();
+    }
+  });
+})();
+</script>
+</body>
+</html>
