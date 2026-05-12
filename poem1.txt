@@ -1,0 +1,21 @@
+《零知识夜航 / Zero-Knowledge Nocturne》
+
+SHA-256 在冷雾里递归，
+Merkle branches 穿过失眠机房，
+VRF 把概率写成星图，
+BFT 节点仍在低温共识。
+
+Ciphertext 漂浮于海底光纤，
+zk-SNARK 像无声审判庭，
+Nonce 在 cache 中短暂燃烧，
+Entropy 从旧世界撤离。
+
+Tor relay 穿越北极电离层，
+ECDSA 于真空签署誓言，
+Root hash 倒映绿色终端，
+Packet rain 淹没凌晨四点。
+
+Cold wallet 沉入黑曜石港口，
+Byzantine faults 继续分裂梦境，
+Proof-of-Work 点亮孤独矿场，
+而你仍在验证最后一枚 block。

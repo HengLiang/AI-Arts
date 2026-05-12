@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Matrix 1</title>
+<style>
+html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    width: 100%;
+    height: 100%;
+}
+canvas {
+    display:block;
+    width:100vw;
+    height:100vh;
+}
+.info {
+    position:absolute;
+    bottom:10px;
+    right:20px;
+    color:#00ff88;
+    font-family: monospace;
+    font-size:12px;
+    opacity:0.5;
+}
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+<div class="info">Cyber Matrix 1</div>
+<script>
+const chars = `《零知识夜航 / Zero-Knowledge Nocturne》
+
+SHA-256 在冷雾里递归，
+Merkle branches 穿过失眠机房，
+VRF 把概率写成星图，
+BFT 节点仍在低温共识。
+
+Ciphertext 漂浮于海底光纤，
+zk-SNARK 像无声审判庭，
+Nonce 在 cache 中短暂燃烧，
+Entropy 从旧世界撤离。
+
+Tor relay 穿越北极电离层，
+ECDSA 于真空签署誓言，
+Root hash 倒映绿色终端，
+Packet rain 淹没凌晨四点。
+
+Cold wallet 沉入黑曜石港口，
+Byzantine faults 继续分裂梦境，
+Proof-of-Work 点亮孤独矿场，
+而你仍在验证最后一枚 block。`;
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+    canvas.width = 1920;
+    canvas.height = 1080;
+}
+resize();
+
+const fontSize = 20;
+const columns = Math.floor(canvas.width / fontSize);
+const drops = Array(columns).fill(1).map(() => Math.random()*-100);
+const speeds = Array(columns).fill(0).map(() => 0.5 + Math.random()*2.5);
+
+function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.font = fontSize + 'px monospace';
+
+    for(let i=0;i<drops.length;i++) {
+        const text = chars[Math.floor(Math.random()*chars.length)];
+        const green = Math.floor(120 + Math.random()*135);
+        ctx.fillStyle = `rgb(0,${green},0)`;
+        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+
+        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = Math.random()*-50;
+        }
+        drops[i] += speeds[i]*0.08;
+    }
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
