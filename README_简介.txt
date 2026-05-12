@@ -84,4 +84,4 @@ Wallpaper: Right-click PNG → Set as Desktop Picture
 Screensaver: Use WebViewScreenSaver.app, load file:///path/to/html
 屏保：使用WebViewScreenSaver，加载本地HTML路径
 
-Generated: 2026-05-11 by Meta AI
+Generated: 2026-05-11 by 
